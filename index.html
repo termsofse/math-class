@@ -1,7 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --accent: #3b82f6;
+            --text: #e5e5e5;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 1.5rem;
+        }
+
+        .asset-node {
+            background: var(--card);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .asset-node:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+    </style>
 </head>
+
 <body>
+    <h1>Math Class</h1>
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+    
+    <div class="data-grid" id="node-container">Loading games...</div>
+
+    <script>
+        const _USER = 'termsofse';
+        const _REPO = 'math-class';
+        
+        const VERCEL_BASE = 'https://math-class-woad.vercel.app/';
+
+        let gameMap = {};
+
+        async function _initMenu() {
+            try {
+                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/names.json`);
+                gameMap = await res.json();
+                _refresh(gameMap);
+            } catch (err) {
+                document.getElementById('node-container').innerText = 'Failed to load game index.';
+            }
+        }
+
+        function _refresh(map) {
+            const g = document.getElementById('node-container');
+            g.innerHTML = '';
+            
+            for (const [displayName, fileName] of Object.entries(map)) {
+                const c = document.createElement('div');
+                c.className = 'asset-node';
+                c.innerText = displayName;
+                c.onclick = () => _loadGame(fileName);
+                g.appendChild(c);
+            }
+        }
+
+        async function _loadGame(fileName) {
+            try {
+                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt`);
+                if (!res.ok) throw new Error('Could not fetch game payload');
+                
+                const base64Data = await res.text();
+                const decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
+
+                let win = window.open('about:blank', '_blank');
+                if (win) {
+                    win.document.open();
+                    win.document.write(decodedHtml);
+                    win.document.close();
+                }
+            } catch (err) {
+                alert('Error launching game asset.');
+            }
+        }
+
+        _initMenu();
+    </script>
 </body>
 </html>
