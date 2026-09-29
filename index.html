@@ -12,7 +12,6 @@
             --accent: #3b82f6;
             --accent-glow: rgba(59, 130, 246, 0.4);
             --text: #e5e5e5;
-            --subtext: #888;
         }
 
         body {
@@ -59,97 +58,10 @@
             border-color: var(--accent);
             box-shadow: 0 6px 20px var(--accent-glow);
         }
-
-        /* Gorgeous Cyberpunk/Tech Loading Overlay */
-        #loader-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(10, 10, 12, 0.9);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-        }
-
-        .loader-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #141416;
-            border: 1px solid #2a2a2e;
-            padding: 2.5rem 3rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px var(--accent-glow);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .spinner-ring {
-            position: relative;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 1.5rem;
-        }
-
-        .spinner-ring div {
-            box-sizing: border-box;
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            border: 4px solid transparent;
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-        }
-
-        .spinner-ring div:nth-child(2) {
-            width: 50px;
-            height: 50px;
-            top: 10px;
-            left: 10px;
-            border-top-color: #60a5fa;
-            animation: spin 0.8s linear infinite reverse;
-        }
-
-        #loader-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 0.4rem;
-        }
-
-        #loader-subtext {
-            font-size: 0.9rem;
-            color: var(--subtext);
-            font-family: monospace;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 
 <body>
-    <!-- Fancy Loading Screen Overlay -->
-    <div id="loader-overlay">
-        <div class="loader-box">
-            <div class="spinner-ring">
-                <div></div>
-                <div></div>
-            </div>
-            <div id="loader-title">Initializing Asset...</div>
-            <div id="loader-subtext">Connecting to secure stream</div>
-        </div>
-    </div>
-
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     
@@ -185,49 +97,123 @@
         }
 
         async function _loadGame(fileName, displayName) {
-            const overlay = document.getElementById('loader-overlay');
-            const loaderTitle = document.getElementById('loader-title');
-            const loaderSubtext = document.getElementById('loader-subtext');
-
-            // 1. Instantly open the blank window synchronously to beat popup blockers
+            // 1. Instantly open the blank window synchronously to bypass popup blockers and shift focus
             let win = window.open('about:blank', '_blank');
             if (!win) {
                 alert('Popup blocked! Please allow popups for this site.');
                 return;
             }
 
-            // Put a clean holding state inside the new window so it's not totally dead white while building
-            win.document.write('<!DOCTYPE html><html><body style="background:#0f0f0f;color:#888;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h2>Loading sandbox session...</h2></body></html>');
-
-            // 2. Display the gorgeous modern loading screen on the current menu page
-            loaderTitle.innerText = `Loading ${displayName}`;
-            loaderSubtext.innerText = `Fetching payload from repository...`;
-            overlay.style.display = 'flex';
+            // 2. Immediately paint the gorgeous cyberpunk loading screen directly inside the new tab
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            background: #0a0a0c;
+                            color: #e5e5e5;
+                            font-family: 'Segoe UI', system-ui, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            overflow: hidden;
+                        }
+                        .loader-box {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            background: #141416;
+                            border: 1px solid #2a2a2e;
+                            padding: 2.5rem 3rem;
+                            border-radius: 20px;
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(59, 130, 246, 0.4);
+                            max-width: 400px;
+                            width: 90%;
+                            text-align: center;
+                        }
+                        .spinner-ring {
+                            position: relative;
+                            width: 70px;
+                            height: 70px;
+                            margin-bottom: 1.5rem;
+                        }
+                        .spinner-ring div {
+                            box-sizing: border-box;
+                            position: absolute;
+                            width: 70px;
+                            height: 70px;
+                            border: 4px solid transparent;
+                            border-top-color: #3b82f6;
+                            border-radius: 50%;
+                            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                        }
+                        .spinner-ring div:nth-child(2) {
+                            width: 50px;
+                            height: 50px;
+                            top: 10px;
+                            left: 10px;
+                            border-top-color: #60a5fa;
+                            animation: spin 0.8s linear infinite reverse;
+                        }
+                        #loader-title {
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            color: #fff;
+                            margin-bottom: 0.4rem;
+                        }
+                        #loader-subtext {
+                            font-size: 0.9rem;
+                            color: #888;
+                            font-family: monospace;
+                        }
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="loader-box">
+                        <div class="spinner-ring">
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <div id="loader-title">Loading ${displayName}</div>
+                        <div id="loader-subtext">Connecting to secure stream...</div>
+                    </div>
+                </body>
+                </html>
+            `);
 
             try {
-                // 3. Fetch raw base64 txt file from GitHub with cache-buster
+                // 3. Fetch the massive Base64 text file from GitHub in the background
                 const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
                 if (!res.ok) throw new Error('Network fetch failed');
                 
-                loaderTitle.innerText = `Decrypting Payload`;
-                loaderSubtext.innerText = `Processing Base64 string data...`;
+                win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
+                win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
                 
                 const base64Data = await res.text();
                 
-                // Allow the UI thread a split second to paint the animation update
                 await new Promise(r => setTimeout(r, 60));
 
-                loaderTitle.innerText = `Building Sandbox`;
-                loaderSubtext.innerText = `Deobfuscating client runtime...`;
+                win.document.getElementById('loader-title').innerText = 'Building Sandbox';
+                win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
 
                 const decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
                 
                 await new Promise(r => setTimeout(r, 40));
 
-                loaderTitle.innerText = `Launching`;
-                loaderSubtext.innerText = `Injecting into secure window...`;
+                win.document.getElementById('loader-title').innerText = 'Launching';
+                win.document.getElementById('loader-subtext').innerText = 'Injecting into secure window...';
 
-                // 4. Inject the final game code into our pre-opened window
+                // Give a split second to see the final status text before clearing
+                await new Promise(r => setTimeout(r, 200));
+
+                // 4. Overwrite the loading screen window with the real game code
                 win.document.open();
                 win.document.write(decodedHtml);
                 win.document.close();
@@ -235,11 +221,6 @@
             } catch (err) {
                 win.close();
                 alert('Error launching game asset. Please check network connection.');
-            } finally {
-                // Keep the overlay visible for a fraction of a second so "Launching" is visible, then hide
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 300);
             }
         }
 
