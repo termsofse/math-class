@@ -97,14 +97,14 @@
         }
 
         async function _loadGame(fileName, displayName) {
-            // 1. Instantly open the blank window synchronously to bypass popup blockers and shift focus
+            // 1. Instantly open the blank window synchronously to beat popup blockers
             let win = window.open('about:blank', '_blank');
             if (!win) {
                 alert('Popup blocked! Please allow popups for this site.');
                 return;
             }
 
-            // 2. Immediately paint the gorgeous cyberpunk loading screen directly inside the new tab
+            // 2. Paint the loading screen inside the new tab
             win.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -189,33 +189,37 @@
             `);
 
             try {
-                // 3. Fetch the massive Base64 text file from GitHub in the background
-                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
+                // Determine whether it's a raw HTML file or a Base64 .txt file based on extension
+                const isHtml = fileName.endsWith('.html');
+                const fileUrl = `https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}?t=${Date.now()}`;
+                
+                const res = await fetch(fileUrl);
                 if (!res.ok) throw new Error('Network fetch failed');
-                
-                win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
-                win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
-                
-                const base64Data = await res.text();
-                
-                await new Promise(r => setTimeout(r, 60));
 
-                win.document.getElementById('loader-title').innerText = 'Building Sandbox';
-                win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
+                let finalHtml = '';
 
-                const decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
-                
-                await new Promise(r => setTimeout(r, 40));
+                if (isHtml) {
+                    win.document.getElementById('loader-title').innerText = 'Loading Raw HTML';
+                    win.document.getElementById('loader-subtext').innerText = 'Injecting lightweight payload...';
+                    finalHtml = await res.text();
+                } else {
+                    win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
+                    win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
+                    
+                    const base64Data = await res.text();
+                    await new Promise(r => setTimeout(r, 60));
 
-                win.document.getElementById('loader-title').innerText = 'Launching';
-                win.document.getElementById('loader-subtext').innerText = 'Injecting into secure window...';
+                    win.document.getElementById('loader-title').innerText = 'Building Sandbox';
+                    win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
 
-                // Give a split second to see the final status text before clearing
-                await new Promise(r => setTimeout(r, 200));
+                    finalHtml = decodeURIComponent(escape(atob(base64Data.trim())));
+                }
 
-                // 4. Overwrite the loading screen window with the real game code
+                await new Promise(r => setTimeout(r, 150));
+
+                // 3. Inject the final code into the target window
                 win.document.open();
-                win.document.write(decodedHtml);
+                win.document.write(finalHtml);
                 win.document.close();
 
             } catch (err) {
