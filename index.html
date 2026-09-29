@@ -4,19 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Dashboard</title>
+    <title>Math Class</title>
     <style>
         :root {
             --bg: #0f0f0f;
             --card: #1a1a1a;
             --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.4);
             --text: #e5e5e5;
+            --subtext: #888;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -29,62 +31,103 @@
         h1 {
             margin-bottom: 0.5rem;
             color: var(--accent);
+            letter-spacing: 1px;
         }
 
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 1.5rem;
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             margin-top: 1.5rem;
         }
 
         .asset-node {
             background: var(--card);
-            border: 1px solid #333;
+            border: 1px solid #262626;
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .asset-node:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             border-color: var(--accent);
+            box-shadow: 0 6px 20px var(--accent-glow);
         }
 
-        /* Full-Screen Loading Overlay Styles */
+        /* Gorgeous Cyberpunk/Tech Loading Overlay */
         #loader-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 15, 15, 0.95);
+            background: rgba(10, 10, 12, 0.9);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
         }
 
-        .spinner {
+        .loader-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #141416;
+            border: 1px solid #2a2a2e;
+            padding: 2.5rem 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px var(--accent-glow);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .spinner-ring {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin-bottom: 1.5rem;
+        }
+
+        .spinner-ring div {
+            box-sizing: border-box;
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border: 4px solid transparent;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        .spinner-ring div:nth-child(2) {
             width: 50px;
             height: 50px;
-            border: 4px solid #333;
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 1rem;
+            top: 10px;
+            left: 10px;
+            border-top-color: #60a5fa;
+            animation: spin 0.8s linear infinite reverse;
         }
 
-        #loader-text {
-            font-size: 1.2rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
+        #loader-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.4rem;
+        }
+
+        #loader-subtext {
+            font-size: 0.9rem;
+            color: var(--subtext);
+            font-family: monospace;
         }
 
         @keyframes spin {
@@ -95,21 +138,26 @@
 </head>
 
 <body>
-    <!-- Full-Screen Loading Overlay -->
+    <!-- Fancy Loading Screen Overlay -->
     <div id="loader-overlay">
-        <div class="spinner"></div>
-        <div id="loader-text">Preparing assets...</div>
+        <div class="loader-box">
+            <div class="spinner-ring">
+                <div></div>
+                <div></div>
+            </div>
+            <div id="loader-title">Initializing Asset...</div>
+            <div id="loader-subtext">Connecting to secure stream</div>
+        </div>
     </div>
 
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     
-    <div class="data-grid" id="node-container">Loading games...</div>
+    <div class="data-grid" id="node-container">Loading catalog...</div>
 
     <script>
         const _USER = 'termsofse';
         const _REPO = 'math-class';
-        const VERCEL_BASE = 'https://your-vercel-app.vercel.app';
 
         let gameMap = {};
 
@@ -138,44 +186,60 @@
 
         async function _loadGame(fileName, displayName) {
             const overlay = document.getElementById('loader-overlay');
-            const loaderText = document.getElementById('loader-text');
-            
-            // 1. Instantly spawn the window synchronously to bypass popup blockers
+            const loaderTitle = document.getElementById('loader-title');
+            const loaderSubtext = document.getElementById('loader-subtext');
+
+            // 1. Instantly open the blank window synchronously to beat popup blockers
             let win = window.open('about:blank', '_blank');
             if (!win) {
                 alert('Popup blocked! Please allow popups for this site.');
                 return;
             }
 
-            // 2. Turn the current menu page into a slick loading screen
-            loaderText.innerText = `Loading ${displayName}...`;
+            // Put a clean holding state inside the new window so it's not totally dead white while building
+            win.document.write('<!DOCTYPE html><html><body style="background:#0f0f0f;color:#888;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h2>Loading sandbox session...</h2></body></html>');
+
+            // 2. Display the gorgeous modern loading screen on the current menu page
+            loaderTitle.innerText = `Loading ${displayName}`;
+            loaderSubtext.innerText = `Fetching payload from repository...`;
             overlay.style.display = 'flex';
 
             try {
-                // 3. Fetch the massive Base64 text file from GitHub
-                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt`);
-                if (!res.ok) throw new Error('Fetch failed');
+                // 3. Fetch raw base64 txt file from GitHub with cache-buster
+                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
+                if (!res.ok) throw new Error('Network fetch failed');
+                
+                loaderTitle.innerText = `Decrypting Payload`;
+                loaderSubtext.innerText = `Processing Base64 string data...`;
                 
                 const base64Data = await res.text();
                 
-                // Let the UI breathe so the overlay renders smoothly before atob() locks the thread
-                await new Promise(r => setTimeout(r, 50));
-                loaderText.innerText = `Decrypting and launching...`;
+                // Allow the UI thread a split second to paint the animation update
+                await new Promise(r => setTimeout(r, 60));
 
-                // Decode base64 payload
+                loaderTitle.innerText = `Building Sandbox`;
+                loaderSubtext.innerText = `Deobfuscating client runtime...`;
+
                 const decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
+                
+                await new Promise(r => setTimeout(r, 40));
 
-                // 4. Inject the code into our pre-opened window
+                loaderTitle.innerText = `Launching`;
+                loaderSubtext.innerText = `Injecting into secure window...`;
+
+                // 4. Inject the final game code into our pre-opened window
                 win.document.open();
                 win.document.write(decodedHtml);
                 win.document.close();
 
             } catch (err) {
-                win.close(); // Close the blank window if something failed
-                alert('Error launching game asset.');
+                win.close();
+                alert('Error launching game asset. Please check network connection.');
             } finally {
-                // Hide the loading overlay on the menu page
-                overlay.style.display = 'none';
+                // Keep the overlay visible for a fraction of a second so "Launching" is visible, then hide
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
             }
         }
 
