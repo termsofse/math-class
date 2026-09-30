@@ -1,1 +1,2 @@
 games/3D-flight-simulator.txt filter=lfs diff=lfs merge=lfs -text
+games/bad-parenting.txt filter=lfs diff=lfs merge=lfs -text
