@@ -3,3 +3,4 @@ games/bad-parenting.txt filter=lfs diff=lfs merge=lfs -text
 games/baldis-basics.txt filter=lfs diff=lfs merge=lfs -text
 games/bank-robbery-2.txt filter=lfs diff=lfs merge=lfs -text
 games/bank-robbery-3.txt filter=lfs diff=lfs merge=lfs -text
+games/crazy-cattle-3D.txt filter=lfs diff=lfs merge=lfs -text
