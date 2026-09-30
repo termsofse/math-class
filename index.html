@@ -65,7 +65,7 @@
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     
-    <div class="data-grid" id="node-container">Loading catalog...</div>
+    <div class="data-grid" id="node-container">Loading catalog stream...</div>
 
     <script>
         const _USER = 'termsofse';
@@ -74,37 +74,63 @@
         let gameMap = {};
 
         async function _initMenu() {
+            const container = document.getElementById('node-container');
+            container.innerHTML = '';
+
             try {
-                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/names.json`);
-                gameMap = await res.json();
-                _refresh(gameMap);
+                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/names.json?t=${Date.now()}`);
+                if (!res.ok) throw new Error('Network fetch failed');
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Dynamically parse completed key-value pairs as chunks stream in
+                    const regex = /"([^"]+)"\s*:\s*"([^"]+)"/g;
+                    let match;
+
+                    while ((match = regex.exec(buffer)) !== null) {
+                        const displayName = match[1];
+                        const fileName = match[2];
+
+                        // Prevent duplicate renders if a key spans across chunks
+                        if (!gameMap[displayName]) {
+                            gameMap[displayName] = fileName;
+                            _appendNode(displayName, fileName);
+                        }
+                    }
+                }
+
+                if (Object.keys(gameMap).length === 0) {
+                    container.innerText = 'No items found in catalog.';
+                }
             } catch (err) {
-                document.getElementById('node-container').innerText = 'Failed to load game index.';
+                container.innerText = 'Failed to load game index.';
             }
         }
 
-        function _refresh(map) {
+        function _appendNode(displayName, fileName) {
             const g = document.getElementById('node-container');
-            g.innerHTML = '';
-            
-            for (const [displayName, fileName] of Object.entries(map)) {
-                const c = document.createElement('div');
-                c.className = 'asset-node';
-                c.innerText = displayName;
-                c.onclick = () => _loadGame(fileName, displayName);
-                g.appendChild(c);
-            }
+            const c = document.createElement('div');
+            c.className = 'asset-node';
+            c.innerText = displayName;
+            c.onclick = () => _loadGame(fileName, displayName);
+            g.appendChild(c);
         }
 
         async function _loadGame(fileName, displayName) {
-            // 1. Instantly open the blank window synchronously to bypass popup blockers and shift focus
             let win = window.open('about:blank', '_blank');
             if (!win) {
                 alert('Popup blocked! Please allow popups for this site.');
                 return;
             }
 
-            // 2. Immediately paint the gorgeous cyberpunk loading screen directly inside the new tab
             win.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -189,7 +215,6 @@
             `);
 
             try {
-                // 3. Fetch the massive Base64 text file from GitHub in the background
                 const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
                 if (!res.ok) throw new Error('Network fetch failed');
                 
@@ -210,10 +235,8 @@
                 win.document.getElementById('loader-title').innerText = 'Launching';
                 win.document.getElementById('loader-subtext').innerText = 'Injecting into secure window...';
 
-                // Give a split second to see the final status text before clearing
                 await new Promise(r => setTimeout(r, 200));
 
-                // 4. Overwrite the loading screen window with the real game code
                 win.document.open();
                 win.document.write(decodedHtml);
                 win.document.close();
