@@ -6,3 +6,4 @@ games/bank-robbery-3.txt filter=lfs diff=lfs merge=lfs -text
 games/crazy-cattle-3D.txt filter=lfs diff=lfs merge=lfs -text
 games/drift-hunters-pro.txt filter=lfs diff=lfs merge=lfs -text
 games/escape-road-3.txt filter=lfs diff=lfs merge=lfs -text
+games/fleeing-the-complex.txt filter=lfs diff=lfs merge=lfs -text
