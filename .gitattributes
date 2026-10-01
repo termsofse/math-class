@@ -14,3 +14,4 @@ games/funny-shooter-2.txt filter=lfs diff=lfs merge=lfs -text
 games/geometry-dash-lite.txt filter=lfs diff=lfs merge=lfs -text
 games/granny-2.txt filter=lfs diff=lfs merge=lfs -text
 games/granny.txt filter=lfs diff=lfs merge=lfs -text
+games/infiltrating-the-airship.txt filter=lfs diff=lfs merge=lfs -text
