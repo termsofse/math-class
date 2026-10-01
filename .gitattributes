@@ -19,3 +19,4 @@ games/madalin-stunt-cars-2.txt filter=lfs diff=lfs merge=lfs -text
 games/sandbox-city.txt filter=lfs diff=lfs merge=lfs -text
 games/super-bike-the-champion.txt filter=lfs diff=lfs merge=lfs -text
 games/super-star-car.txt filter=lfs diff=lfs merge=lfs -text
+games/tap-road.txt filter=lfs diff=lfs merge=lfs -text
