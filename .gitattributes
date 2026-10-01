@@ -10,3 +10,4 @@ games/fleeing-the-complex.txt filter=lfs diff=lfs merge=lfs -text
 games/fnaf-sister-location.txt filter=lfs diff=lfs merge=lfs -text
 games/friday-night-funkin.txt filter=lfs diff=lfs merge=lfs -text
 games/funny-mad-racing.txt filter=lfs diff=lfs merge=lfs -text
+games/funny-shooter-2.txt filter=lfs diff=lfs merge=lfs -text
