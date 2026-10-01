@@ -54,7 +54,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.75krem;
+            gap: 0.75rem;
         }
 
         .asset-node img {
@@ -90,6 +90,7 @@
         const _REPO = 'math-class';
 
         let gameMap = {};
+        const gameCache = {}; // In-memory cache for loaded game assets
 
         async function _initMenu() {
             const container = document.getElementById('node-container');
@@ -109,7 +110,6 @@
 
                     buffer += decoder.decode(value, { stream: true });
 
-                    // Dynamically parse completed key-value pairs as chunks stream in
                     const regex = /"([^"]+)"\s*:\s*"([^"]+)"/g;
                     let match;
 
@@ -117,7 +117,6 @@
                         const displayName = match[1];
                         const fileName = match[2];
 
-                        // Prevent duplicate renders if a key spans across chunks
                         if (!gameMap[displayName]) {
                             gameMap[displayName] = fileName;
                             _appendNode(displayName, fileName);
@@ -144,7 +143,6 @@
             img.alt = displayName;
             img.loading = 'lazy';
             img.onerror = () => {
-                // Fallback placeholder if thumbnail doesn't exist yet
                 img.style.display = 'none';
             };
 
@@ -240,34 +238,47 @@
                             <div></div>
                         </div>
                         <div id="loader-title">Loading ${displayName}</div>
-                        <div id="loader-subtext">Connecting to secure stream...</div>
+                        <div id="loader-subtext">Initializing asset stream...</div>
                     </div>
                 </body>
                 </html>
             `);
 
             try {
-                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
-                if (!res.ok) throw new Error('Network fetch failed');
-                
-                win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
-                win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
-                
-                const base64Data = await res.text();
-                
-                await new Promise(r => setTimeout(r, 60));
+                let decodedHtml;
 
-                win.document.getElementById('loader-title').innerText = 'Building Sandbox';
-                win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
+                if (gameCache[fileName]) {
+                    // Fast path: pull straight from memory cache
+                    win.document.getElementById('loader-title').innerText = 'Loading from Cache';
+                    win.document.getElementById('loader-subtext').innerText = 'Instant memory retrieval...';
+                    await new Promise(r => setTimeout(r, 120)); // Brief flash of the loader
+                    decodedHtml = gameCache[fileName];
+                } else {
+                    // Slow path: fetch from GitHub and decode
+                    const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
+                    if (!res.ok) throw new Error('Network fetch failed');
+                    
+                    win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
+                    win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
+                    
+                    const base64Data = await res.text();
+                    await new Promise(r => setTimeout(r, 60));
 
-                const decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
-                
-                await new Promise(r => setTimeout(r, 40));
+                    win.document.getElementById('loader-title').innerText = 'Building Sandbox';
+                    win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
+
+                    decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
+                    
+                    // Save into cache for next time
+                    gameCache[fileName] = decodedHtml;
+                    
+                    await new Promise(r => setTimeout(r, 40));
+                }
 
                 win.document.getElementById('loader-title').innerText = 'Launching';
                 win.document.getElementById('loader-subtext').innerText = 'Injecting into secure window...';
 
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 150));
 
                 win.document.open();
                 win.document.write(decodedHtml);
