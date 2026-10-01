@@ -33,13 +33,38 @@
             letter-spacing: 1px;
         }
 
+        .search-container {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--card);
+            border: 1px solid #2a2a2e;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 1.5rem;
             width: 100%;
             max-width: 900px;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
 
         .asset-node {
@@ -76,6 +101,20 @@
             border-color: var(--accent);
             box-shadow: 0 6px 20px var(--accent-glow);
         }
+
+        .error-box {
+            color: #ef4444;
+            font-family: monospace;
+            background: #1f1212;
+            border: 1px solid #7f1d1d;
+            padding: 1rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            margin-top: 1.5rem;
+            word-break: break-all;
+        }
     </style>
 </head>
 
@@ -83,6 +122,10 @@
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     
+    <div class="search-container">
+        <input type="text" id="search-input" class="search-bar" placeholder="Search games starting with..." oninput="_filterCatalog()" />
+    </div>
+
     <div class="data-grid" id="node-container">Loading catalog stream...</div>
 
     <script>
@@ -98,7 +141,7 @@
 
             try {
                 const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/names.json?t=${Date.now()}`);
-                if (!res.ok) throw new Error('Network fetch failed');
+                if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
 
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
@@ -125,10 +168,10 @@
                 }
 
                 if (Object.keys(gameMap).length === 0) {
-                    container.innerText = 'No items found in catalog.';
+                    container.innerHTML = '<div class="error-box">No items found in catalog index.</div>';
                 }
             } catch (err) {
-                container.innerText = 'Failed to load game index.';
+                container.innerHTML = `<div class="error-box">Failed to load game index: ${err.message}</div>`;
             }
         }
 
@@ -136,6 +179,7 @@
             const g = document.getElementById('node-container');
             const c = document.createElement('div');
             c.className = 'asset-node';
+            c.dataset.name = displayName.toLowerCase(); // Store lowercase name for searching
             c.onclick = () => _loadGame(fileName, displayName);
 
             const img = document.createElement('img');
@@ -152,6 +196,21 @@
             c.appendChild(img);
             c.appendChild(title);
             g.appendChild(c);
+        }
+
+        function _filterCatalog() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const nodes = document.getElementsByClassName('asset-node');
+
+            for (let node of nodes) {
+                const name = node.dataset.name;
+                // Checks if the game title starts with the search query
+                if (name.startsWith(query)) {
+                    node.style.display = 'flex';
+                } else {
+                    node.style.display = 'none';
+                }
+            }
         }
 
         async function _loadGame(fileName, displayName) {
@@ -248,15 +307,13 @@
                 let decodedHtml;
 
                 if (gameCache[fileName]) {
-                    // Fast path: pull straight from memory cache
                     win.document.getElementById('loader-title').innerText = 'Loading from Cache';
                     win.document.getElementById('loader-subtext').innerText = 'Instant memory retrieval...';
-                    await new Promise(r => setTimeout(r, 120)); // Brief flash of the loader
+                    await new Promise(r => setTimeout(r, 120));
                     decodedHtml = gameCache[fileName];
                 } else {
-                    // Slow path: fetch from GitHub and decode
                     const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
-                    if (!res.ok) throw new Error('Network fetch failed');
+                    if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
                     
                     win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
                     win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
@@ -268,8 +325,6 @@
                     win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
 
                     decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
-                    
-                    // Save into cache for next time
                     gameCache[fileName] = decodedHtml;
                     
                     await new Promise(r => setTimeout(r, 40));
@@ -285,8 +340,18 @@
                 win.document.close();
 
             } catch (err) {
-                win.close();
-                alert('Error launching game asset. Please check network connection.');
+                win.document.open();
+                win.document.write(`
+                    <html>
+                    <body style="background:#0a0a0c; color:#ef4444; font-family:monospace; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; text-align:center; padding:2rem;">
+                        <div>
+                            <h2>Error launching game asset:</h2>
+                            <p style="color:#e5e5e5; background:#1f1212; border:1px solid #7f1d1d; padding:1rem; border-radius:8px;">${err.message}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                win.document.close();
             }
         }
 
