@@ -140,7 +140,7 @@
             container.innerHTML = '';
 
             try {
-                const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/names.json?t=${Date.now()}`);
+                const res = await fetch(`https://math-class-inky.vercel.app/names.json?t=${Date.now()}`);
                 if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
 
                 const reader = res.body.getReader();
@@ -183,7 +183,7 @@
             c.onclick = () => _loadGame(fileName, displayName);
 
             const img = document.createElement('img');
-            img.src = `https://raw.githubusercontent.com/${_USER}/${_REPO}/main/thumbnails/${fileName}.png`;
+            img.src = `https://math-class-inky.vercel.app/thumbnails/${fileName}.png`;
             img.alt = displayName;
             img.loading = 'lazy';
             img.onerror = () => {
@@ -312,7 +312,7 @@
                     await new Promise(r => setTimeout(r, 120));
                     decodedHtml = gameCache[fileName];
                 } else {
-                    const res = await fetch(`https://raw.githubusercontent.com/${_USER}/${_REPO}/main/games/${fileName}.txt?t=${Date.now()}`);
+                    const res = await fetch(`https://math-class-inky.vercel.app/games/${fileName}.txt?t=${Date.now()}`);
                     if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
                     
                     win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
