@@ -121,7 +121,7 @@
 <body>
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-    
+
     <div class="search-container">
         <input type="text" id="search-input" class="search-bar" placeholder="Search games starting with..." oninput="_filterCatalog()" />
     </div>
@@ -132,9 +132,82 @@
         const _USER = 'termsofse';
         const _REPO = 'math-class';
 
-        let gameMap = {};
-        const gameCache = {}; // In-memory cache for loaded game assets
+        const _DB_NAME = 'math-class-cache';
+        const _DB_VERSION = 1;
+        const _STORE = 'games';
 
+        let gameMap = {};
+        const gameCache = {}; // L1: in-memory fast path (survives within this page session)
+
+        // ---------- IndexedDB layer ----------
+        let _dbPromise = null;
+
+        function _openDB() {
+            if (!_dbPromise) {
+                _dbPromise = new Promise((resolve, reject) => {
+                    const req = indexedDB.open(_DB_NAME, _DB_VERSION);
+                    req.onupgradeneeded = () => {
+                        const db = req.result;
+                        if (!db.objectStoreNames.contains(_STORE)) {
+                            db.createObjectStore(_STORE); // keyPath: none, we use fileName as the key
+                        }
+                    };
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                }).catch(err => {
+                    _dbPromise = null; // allow retry on next use
+                    throw err;
+                });
+            }
+            return _dbPromise;
+        }
+
+        function _dbGet(fileName) {
+            return _openDB().then(db => new Promise((resolve, reject) => {
+                const tx = db.transaction(_STORE, 'readonly');
+                const req = tx.objectStore(_STORE).get(fileName);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            }));
+        }
+
+        function _dbSet(fileName, html) {
+            return _openDB().then(db => new Promise((resolve, reject) => {
+                const tx = db.transaction(_STORE, 'readwrite');
+                tx.objectStore(_STORE).put({ html: html, savedAt: Date.now() }, fileName);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            }));
+        }
+
+        function _dbDelete(fileName) {
+            return _openDB().then(db => new Promise((resolve, reject) => {
+                const tx = db.transaction(_STORE, 'readwrite');
+                tx.objectStore(_STORE).delete(fileName);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            }));
+        }
+
+        function _dbClear() {
+            return _openDB().then(db => new Promise((resolve, reject) => {
+                const tx = db.transaction(_STORE, 'readwrite');
+                tx.objectStore(_STORE).clear();
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            }));
+        }
+
+        function _setLoader(win, title, subtext) {
+            const t = win.document.getElementById('loader-title');
+            const s = win.document.getElementById('loader-subtext');
+            if (t) t.innerText = title;
+            if (s) s.innerText = subtext;
+        }
+
+        const _delay = ms => new Promise(r => setTimeout(r, ms));
+
+        // ---------- Menu ----------
         async function _initMenu() {
             const container = document.getElementById('node-container');
             container.innerHTML = '';
@@ -171,7 +244,7 @@
                     container.innerHTML = '<div class="error-box">No items found in catalog index.</div>';
                 }
             } catch (err) {
-                container.innerHTML = `<div class="error-box">Failed to load game index: ${err.message}</div>`;
+                container.innerHTML = `<div class="error-box">Failed to load game index: ${[err.me](https://err.me)ssage}</div>`;
             }
         }
 
@@ -193,9 +266,9 @@
             const title = document.createElement('span');
             title.innerText = displayName;
 
-            c.appendChild(img);
-            c.appendChild(title);
-            g.appendChild(c);
+            [c.app](https://c.app)endChild(img);
+            [c.app](https://c.app)endChild(title);
+            [g.app](https://g.app)endChild(c);
         }
 
         function _filterCatalog() {
@@ -213,6 +286,7 @@
             }
         }
 
+        // ---------- Game loading ----------
         async function _loadGame(fileName, displayName) {
             let win = window.open('about:blank', '_blank');
             if (!win) {
@@ -306,34 +380,52 @@
             try {
                 let decodedHtml;
 
+                // L1: in-memory cache (same page session)
                 if (gameCache[fileName]) {
-                    win.document.getElementById('loader-title').innerText = 'Loading from Cache';
-                    win.document.getElementById('loader-subtext').innerText = 'Instant memory retrieval...';
-                    await new Promise(r => setTimeout(r, 120));
+                    _setLoader(win, 'Loading from Cache', 'Instant memory retrieval...');
+                    await _delay(120);
                     decodedHtml = gameCache[fileName];
                 } else {
-                    const res = await fetch(`https://math-class-inky.vercel.app/games/${fileName}.txt?t=${Date.now()}`);
-                    if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
-                    
-                    win.document.getElementById('loader-title').innerText = 'Decrypting Payload';
-                    win.document.getElementById('loader-subtext').innerText = 'Processing Base64 string data...';
-                    
-                    const base64Data = await res.text();
-                    await new Promise(r => setTimeout(r, 60));
+                    // L2: IndexedDB (persists across sessions/reloads)
+                    let cached = null;
+                    try {
+                        cached = await _dbGet(fileName);
+                    } catch (e) {
+                        // IndexedDB unavailable (private mode, blocked, etc.) — fall through to fetch
+                    }
 
-                    win.document.getElementById('loader-title').innerText = 'Building Sandbox';
-                    win.document.getElementById('loader-subtext').innerText = 'Deobfuscating client runtime...';
+                    if (cached && cached.html) {
+                        _setLoader(win, 'Loading from Cache', 'Retrieving from IndexedDB...');
+                        await _delay(120);
+                        decodedHtml = cached.html;
+                        gameCache[fileName] = decodedHtml; // promote to L1
+                    } else {
+                        const res = await fetch(`https://math-class-inky.vercel.app/games/${fileName}.txt?t=${Date.now()}`);
+                        if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
 
-                    decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
-                    gameCache[fileName] = decodedHtml;
-                    
-                    await new Promise(r => setTimeout(r, 40));
+                        _setLoader(win, 'Decrypting Payload', 'Processing Base64 string data...');
+
+                        const base64Data = await res.text();
+                        await _delay(60);
+
+                        _setLoader(win, 'Building Sandbox', 'Deobfuscating client runtime...');
+
+                        decodedHtml = decodeURIComponent(escape(atob(base64Data.trim())));
+                        gameCache[fileName] = decodedHtml;
+
+                        // Persist to IndexedDB (non-fatal if it fails)
+                        try {
+                            await _dbSet(fileName, decodedHtml);
+                        } catch (e) {
+                            console.warn('IndexedDB cache write failed:', e);
+                        }
+
+                        await _delay(40);
+                    }
                 }
 
-                win.document.getElementById('loader-title').innerText = 'Launching';
-                win.document.getElementById('loader-subtext').innerText = 'Injecting into secure window...';
-
-                await new Promise(r => setTimeout(r, 150));
+                _setLoader(win, 'Launching', 'Injecting into secure window...');
+                await _delay(150);
 
                 win.document.open();
                 win.document.write(decodedHtml);
@@ -346,7 +438,7 @@
                     <body style="background:#0a0a0c; color:#ef4444; font-family:monospace; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; text-align:center; padding:2rem;">
                         <div>
                             <h2>Error launching game asset:</h2>
-                            <p style="color:#e5e5e5; background:#1f1212; border:1px solid #7f1d1d; padding:1rem; border-radius:8px;">${err.message}</p>
+                            <p style="color:#e5e5e5; background:#1f1212; border:1px solid #7f1d1d; padding:1rem; border-radius:8px;">${[err.me](https://err.me)ssage}</p>
                         </div>
                     </body>
                     </html>
