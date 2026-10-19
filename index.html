@@ -190,7 +190,6 @@
 </head>
 
 <body>
-    <!-- Stylish Top-Left Unsupported Games Box -->
     <div class="unsupported-box" id="unsupported-box" onclick="toggleUnsupportedPopup()">
         <div class="unsupported-header">
             ⚠️ Unsupported Games
@@ -199,7 +198,7 @@
             <p class="unsupported-info">These online games cannot be added because they require a live server backend:</p>
             <ul>
                 <li>Shell Shockers</li>
-                <li>Krunker.io</li>
+                <li>Size it up</li>
             </ul>
             <span class="close-hint">Click to collapse</span>
         </div>
@@ -215,7 +214,6 @@
     <div class="data-grid" id="node-container">Loading catalog stream...</div>
 
     <script>
-        // Toggle the popup open/closed state on click
         function toggleUnsupportedPopup() {
             const box = document.getElementById('unsupported-box');
             box.classList.toggle('active');
