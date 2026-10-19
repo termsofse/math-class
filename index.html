@@ -27,6 +27,77 @@
             box-sizing: border-box;
         }
 
+        /* Top-Left Unsupported Games Box Styles */
+        .unsupported-box {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #7f1d1d;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-size: 0.85rem;
+            max-width: 240px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .unsupported-box:hover {
+            border-color: #ef4444;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .unsupported-header {
+            font-weight: 600;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .unsupported-dropdown {
+            display: none;
+            margin-top: 0.5rem;
+            border-top: 1px solid #2a2a2e;
+            padding-top: 0.5rem;
+            color: var(--text);
+        }
+
+        .unsupported-box.active .unsupported-dropdown {
+            display: block;
+        }
+
+        .unsupported-dropdown ul {
+            margin: 0.4rem 0 0.4rem 1.2rem;
+            padding: 0;
+            color: #a3a3a3;
+        }
+
+        .unsupported-dropdown li {
+            margin-bottom: 0.2rem;
+            font-size: 0.8rem;
+        }
+
+        .unsupported-info {
+            margin: 0 0 0.4rem 0;
+            font-size: 0.78rem;
+            color: #d1d5db;
+            line-height: 1.3;
+        }
+
+        .close-hint {
+            font-size: 0.65rem;
+            color: #6b7280;
+            font-style: italic;
+            display: block;
+            text-align: right;
+            margin-top: 0.3rem;
+        }
+
         h1 {
             margin-bottom: 0.5rem;
             color: var(--accent);
@@ -119,6 +190,21 @@
 </head>
 
 <body>
+    <!-- Stylish Top-Left Unsupported Games Box -->
+    <div class="unsupported-box" id="unsupported-box" onclick="toggleUnsupportedPopup()">
+        <div class="unsupported-header">
+            ⚠️ Unsupported Games
+        </div>
+        <div class="unsupported-dropdown">
+            <p class="unsupported-info">These online games cannot be added because they require a live server backend:</p>
+            <ul>
+                <li>Shell Shockers</li>
+                <li>Krunker.io</li>
+            </ul>
+            <span class="close-hint">Click to collapse</span>
+        </div>
+    </div>
+
     <h1>Math Class</h1>
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
@@ -129,6 +215,12 @@
     <div class="data-grid" id="node-container">Loading catalog stream...</div>
 
     <script>
+        // Toggle the popup open/closed state on click
+        function toggleUnsupportedPopup() {
+            const box = document.getElementById('unsupported-box');
+            box.classList.toggle('active');
+        }
+
         const _USER = 'termsofse';
         const _REPO = 'math-class';
 
@@ -175,24 +267,6 @@
             return _openDB().then(db => new Promise((resolve, reject) => {
                 const tx = db.transaction(_STORE, 'readwrite');
                 tx.objectStore(_STORE).put({ html: html, savedAt: Date.now() }, fileName);
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            }));
-        }
-
-        function _dbDelete(fileName) {
-            return _openDB().then(db => new Promise((resolve, reject) => {
-                const tx = db.transaction(_STORE, 'readwrite');
-                tx.objectStore(_STORE).delete(fileName);
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            }));
-        }
-
-        function _dbClear() {
-            return _openDB().then(db => new Promise((resolve, reject) => {
-                const tx = db.transaction(_STORE, 'readwrite');
-                tx.objectStore(_STORE).clear();
                 tx.oncomplete = () => resolve();
                 tx.onerror = () => reject(tx.error);
             }));
