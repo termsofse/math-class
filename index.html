@@ -201,6 +201,86 @@
             letter-spacing: 1px;
         }
 
+        /* Custom Form Styling matching site cards */
+        .custom-form-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card);
+            border: 1px solid #262626;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #141414;
+            border: 1px solid #2a2a2e;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            box-sizing: border-box;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+            filter: brightness(1.1);
+        }
+
+        #success-message {
+            display: none;
+            background: #064e3b;
+            border: 1px solid #059669;
+            color: #34d399;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+
         .search-container {
             width: 100%;
             max-width: 900px;
@@ -320,7 +400,36 @@
     </div>
 
     <h1>Math Class</h1>
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/viewform?embedded=true" width="640" height="422" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+
+    <!-- Native Custom Form Container with Auto-Reset Timer -->
+    <div class="custom-form-container">
+        <!-- Hidden iframe to seamlessly process Google Form submissions -->
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { showSuccess(); }"></iframe>
+
+        <form id="request-form" action="https://docs.google.com/forms/u/3/d/e/1FAIpQLSewSgNGDuouAaEFoEh8swzHfS4rlzzZB_cX18ba3RisgVHinw/formResponse" 
+              method="POST" 
+              target="hidden_iframe" 
+              onsubmit="submitted=true;">
+            
+            <!-- Question 1: Broken site report -->
+            <div class="form-group">
+                <label for="entry.264074873">Write here about anything with the site that's broken</label>
+                <textarea id="entry.264074873" name="entry.264074873" class="form-control" placeholder="Describe any issues..."></textarea>
+            </div>
+
+            <!-- Question 2: Game requests -->
+            <div class="form-group">
+                <label for="entry.1444098362">What games do you want added?</label>
+                <textarea id="entry.1444098362" name="entry.1444098362" class="form-control" placeholder="List requested games..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Request</button>
+        </form>
+
+        <div id="success-message">
+            ✓ Response submitted successfully! You can submit another response shortly.
+        </div>
+    </div>
 
     <div class="search-container">
         <input type="text" id="search-input" class="search-bar" placeholder="Search games starting with..." oninput="_filterCatalog()" />
@@ -329,6 +438,27 @@
     <div class="data-grid" id="node-container">Loading catalog stream...</div>
 
     <script>
+        let submitted = false;
+
+        function showSuccess() {
+            const form = document.getElementById('request-form');
+            const successMsg = document.getElementById('success-message');
+
+            // Hide the form and display the success alert
+            form.style.display = 'none';
+            successMsg.style.display = 'block';
+
+            // Reset form fields for future submissions
+            form.reset();
+
+            // After 10 seconds (10000 milliseconds), bring the form back and hide the success alert
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+                form.style.display = 'block';
+                submitted = false; // Reset submission flag
+            }, 10000); // Change 10000 to 20000 if you prefer 20 seconds instead
+        }
+
         function toggleUnsupportedPopup() {
             const box = document.getElementById('unsupported-box');
             box.classList.toggle('active');
@@ -345,16 +475,12 @@
             item.classList.toggle('active');
         }
 
-        const _USER = 'termsofse';
-        const _REPO = 'math-class';
-
         const _DB_NAME = 'math-class-cache';
         const _DB_VERSION = 1;
         const _STORE = 'games';
 
         let gameMap = {};
         const gameCache = {};
-
         let _dbPromise = null;
 
         function _openDB() {
@@ -582,8 +708,7 @@
                     let cached = null;
                     try {
                         cached = await _dbGet(fileName);
-                    } catch (e) {
-                    }
+                    } catch (e) {}
 
                     if (cached && cached.html) {
                         _setLoader(win, 'Loading from Cache', 'Retrieving from IndexedDB...');
