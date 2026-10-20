@@ -27,26 +27,52 @@
             box-sizing: border-box;
         }
 
+        @keyframes ringFlowReverse {
+            0% { background-position: 400% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes rgbSpinReverse {
+            0% { filter: hue-rotate(360deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+
+        @keyframes borderSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
+        @keyframes borderGlowPulse {
+            0% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2), inset 0 0 5px rgba(239, 68, 68, 0.1); border-color: #7f1d1d; }
+            50% { box-shadow: 0 4px 22px rgba(239, 68, 68, 0.5), inset 0 0 10px rgba(239, 68, 68, 0.2); border-color: #ef4444; }
+            100% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2), inset 0 0 5px rgba(239, 68, 68, 0.1); border-color: #7f1d1d; }
+        }
+
+        @keyframes borderGlowYellowPulse {
+            0% { box-shadow: 0 4px 12px rgba(133, 77, 14, 0.3), inset 0 0 5px rgba(133, 77, 14, 0.1); border-color: #854d0e; }
+            50% { box-shadow: 0 4px 22px rgba(234, 179, 8, 0.5), inset 0 0 10px rgba(234, 179, 8, 0.2); border-color: #eab308; }
+            100% { box-shadow: 0 4px 12px rgba(133, 77, 14, 0.3), inset 0 0 5px rgba(133, 77, 14, 0.1); border-color: #854d0e; }
+        }
+
         .unsupported-box {
             position: fixed;
             top: 20px;
             left: 20px;
             background: rgba(26, 26, 26, 0.95);
+            animation: borderGlowPulse 4s ease infinite;
             border: 1px solid #7f1d1d;
             border-radius: 10px;
             padding: 0.75rem 1rem;
             z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             font-size: 0.85rem;
             max-width: 240px;
             cursor: pointer;
             backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
         .unsupported-box:hover {
-            border-color: #ef4444;
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
         }
 
         .unsupported-header {
@@ -93,21 +119,20 @@
             top: 20px;
             right: 20px;
             background: rgba(26, 26, 26, 0.95);
+            animation: borderGlowYellowPulse 4s ease infinite;
             border: 1px solid #854d0e;
             border-radius: 10px;
             padding: 0.75rem 1rem;
             z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             font-size: 0.85rem;
             max-width: 240px;
             cursor: pointer;
             backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
         .bugs-box:hover {
-            border-color: #eab308;
-            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
+            transform: translateY(-2px);
         }
 
         .bugs-header {
@@ -160,13 +185,13 @@
             padding: 0.4rem 0.6rem;
             font-size: 0.78rem;
             color: #d1d5db;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(133, 77, 14, 0.3);
             transition: all 0.3s ease;
         }
 
         .bug-name-box:hover {
             border-color: #eab308;
-            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
+            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.5);
         }
 
         .bug-subbox {
@@ -178,7 +203,7 @@
             padding: 0.6rem 0.8rem;
             font-size: 0.78rem;
             color: #d1d5db;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(133, 77, 14, 0.3);
             cursor: default;
         }
 
@@ -195,13 +220,21 @@
             margin-top: 0.3rem;
         }
 
+        /* High-Saturation Neon Title */
         h1 {
-            margin-bottom: 0.5rem;
-            color: var(--accent);
-            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ff0055, #ffcc00, #00ff66, #00ffff, #7928ca, #ff0055);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: ringFlowReverse 14s linear infinite, rgbSpinReverse 16s linear infinite;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
         }
 
-        /* Custom Form Styling matching site cards */
+        /* Custom Form Container */
         .custom-form-container {
             width: 100%;
             max-width: 600px;
@@ -213,6 +246,7 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             box-sizing: border-box;
+            transition: box-shadow 0.3s ease;
         }
 
         .form-group {
@@ -315,19 +349,45 @@
             margin-top: 1rem;
         }
 
+        /* Game Button with Spinning Neon RGB Outer Border Strip */
         .asset-node {
+            position: relative;
             background: var(--card);
-            border: 1px solid #262626;
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.75rem;
+            z-index: 1;
+        }
+
+        /* Spinning RGB Border Strip Layer */
+        .asset-node::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, #ff0055, #ffcc00, #00ff66, #00ffff, #7928ca, #ff0055);
+            animation: borderSpin 8s linear infinite;
+            z-index: -2;
+        }
+
+        /* Inner background mask so only the edge shows as a neon strip */
+        .asset-node::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: var(--card);
+            border-radius: 10px;
+            z-index: -1;
         }
 
         .asset-node img {
@@ -338,16 +398,27 @@
             background: #222;
         }
 
+        /* Neon RGB Gradient for Game Titles inside Buttons */
         .asset-node span {
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
+            background: linear-gradient(90deg, #ff0055, #ffcc00, #00ff66, #00ffff, #7928ca, #ff0055);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: ringFlowReverse 14s linear infinite, rgbSpinReverse 16s linear infinite;
             word-break: break-word;
+            transition: filter 0.25s ease;
         }
 
         .asset-node:hover {
             transform: translateY(-4px);
-            border-color: var(--accent);
-            box-shadow: 0 6px 20px var(--accent-glow);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .asset-node:hover span {
+            filter: brightness(1.3);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
 
         .error-box {
@@ -391,7 +462,7 @@
                 <li class="bug-item" onclick="toggleBugItem(event)">
                     <div class="bug-name-box">Backrooms</div>
                     <div class="bug-subbox">
-                        The game simply won't load.
+                        The game takes several attempts to load, it may take a long time on a single attempt as well, you just gotta try.
                     </div>
                 </li>
             </ul>
@@ -444,19 +515,15 @@
             const form = document.getElementById('request-form');
             const successMsg = document.getElementById('success-message');
 
-            // Hide the form and display the success alert
             form.style.display = 'none';
             successMsg.style.display = 'block';
-
-            // Reset form fields for future submissions
             form.reset();
 
-            // After 10 seconds (10000 milliseconds), bring the form back and hide the success alert
             setTimeout(() => {
                 successMsg.style.display = 'none';
                 form.style.display = 'block';
-                submitted = false; // Reset submission flag
-            }, 10000); // Change 10000 to 20000 if you prefer 20 seconds instead
+                submitted = false;
+            }, 10000);
         }
 
         function toggleUnsupportedPopup() {
@@ -619,6 +686,14 @@
                 <html>
                 <head>
                     <style>
+                        @keyframes ringFlowReverse {
+                            0% { background-position: 400% 50%; }
+                            100% { background-position: 0% 50%; }
+                        }
+                        @keyframes rgbSpinReverse {
+                            0% { filter: hue-rotate(360deg); }
+                            100% { filter: hue-rotate(0deg); }
+                        }
                         body {
                             background: #0a0a0c;
                             color: #e5e5e5;
@@ -638,7 +713,8 @@
                             border: 1px solid #2a2a2e;
                             padding: 2.5rem 3rem;
                             border-radius: 20px;
-                            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(59, 130, 246, 0.4);
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 25px rgba(0, 255, 255, 0.2);
+                            animation: rgbSpinReverse 16s linear infinite;
                             max-width: 400px;
                             width: 90%;
                             text-align: center;
@@ -655,22 +731,26 @@
                             width: 70px;
                             height: 70px;
                             border: 4px solid transparent;
-                            border-top-color: #3b82f6;
+                            border-top-color: #ff0055;
                             border-radius: 50%;
-                            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+                            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite, rgbSpinReverse 10s linear infinite;
                         }
                         .spinner-ring div:nth-child(2) {
                             width: 50px;
                             height: 50px;
                             top: 10px;
                             left: 10px;
-                            border-top-color: #60a5fa;
-                            animation: spin 0.8s linear infinite reverse;
+                            border-top-color: #00ff66;
+                            animation: spin 0.8s linear infinite reverse, rgbSpinReverse 10s linear infinite;
                         }
                         #loader-title {
                             font-size: 1.25rem;
-                            font-weight: 600;
-                            color: #fff;
+                            font-weight: 700;
+                            background: linear-gradient(90deg, #ff0055, #ffcc00, #00ff66, #00ffff, #7928ca, #ff0055);
+                            background-size: 400% 100%;
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            animation: ringFlowReverse 14s linear infinite, rgbSpinReverse 16s linear infinite;
                             margin-bottom: 0.4rem;
                         }
                         #loader-subtext {
